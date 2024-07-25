@@ -9,30 +9,24 @@ import mongoose from 'mongoose';
 const User = mongoose.model("user", userSchema)
 
 export const getSignup = (req, res, next) => {
-  res.status(201).render('template');
+  res.status(201).render('landing');
 };
 
 export const postSignup = async (req, res) => {
-  const { email, password} = req.body;
-  console.log(req.body)
-  // if (password !== password2) {
-  //   req.flash('error', 'Passwords do not match');
-  //   return res.redirect('/signup');
-  // }
-
+  const { name,email, password} = req.body;
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      req.status(404).send('error', 'Email already exists');
-      return res.redirect('/signup');
+      res.status(200).render('signup',{error:existingUser.email})
+      //return res.render('home',{user:existingUser.name});
     }
 
-    const newUser = new User({ email, password });
+    const newUser = new User({ name,email, password });
     await newUser.save();
-    res.redirect('/signin');
+    return res.render('home',{user:existingUser.name});
   } catch (err) {
-    req.flash('error', 'Error creating account');
-    res.redirect('/signup');
+    console.error(err.message);
+    return res.render('error');
   }
 };
 
@@ -42,7 +36,7 @@ export const getSignin = (req, res) => {
 
 export const signout = (req, res) => {
   req.logout();
-  res.redirect('/signin');
+  res.render('signin');
 };
 
 export const getHome = (req, res) => {
@@ -56,23 +50,20 @@ export const getResetPassword = (req, res) => {
 export const postResetPassword = async (req, res) => {
   const { email, newPassword, newPassword2 } = req.body;
   if (newPassword !== newPassword2) {
-    req.flash('error', 'Passwords do not match');
-    return res.redirect('/reset');
+    return res.render('/reset');
   }
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash('error', 'No user found with that email');
-      return res.redirect('/reset');
+      return res.render('/reset');
     }
 
     user.password = newPassword;
     await user.save();
-    res.redirect('/signin');
+    res.render('/signin');
   } catch (err) {
-    req.flash('error', 'Error resetting password');
-    res.redirect('/reset');
+    res.render('/reset');
   }
 };
 
@@ -85,8 +76,7 @@ export const postForgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash('error', 'No user found with that email');
-      return res.redirect('/forgot');
+      return res.render('/forgot');
     }
 
     const token = crypto.randomBytes(20).toString('hex');
@@ -106,10 +96,10 @@ export const postForgotPassword = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    req.flash('info', `An email has been sent to ${user.email} with further instructions.`);
-    res.redirect('/forgot');
+    // req.flash('info', `An email has been sent to ${user.email} with further instructions.`);
+    res.render('/forgot');
   } catch (err) {
-    req.flash('error', 'Error sending the email');
-    res.redirect('/forgot');
+    // req.flash('error', 'Error sending the email');
+    res.render('/forgot');
   }
 };
