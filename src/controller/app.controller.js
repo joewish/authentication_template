@@ -8,21 +8,22 @@ import {recaptcha2} from '../config/recaptcha.js';
 import mongoose from 'mongoose';
 const User = mongoose.model("user", userSchema)
 
-export const getSignup = (req, res) => {
-  res.render('signup');
+export const getSignup = (req, res, next) => {
+  res.status(201).render('template');
 };
 
 export const postSignup = async (req, res) => {
-  const { email, password, password2 } = req.body;
-  if (password !== password2) {
-    req.flash('error', 'Passwords do not match');
-    return res.redirect('/signup');
-  }
+  const { email, password} = req.body;
+  console.log(req.body)
+  // if (password !== password2) {
+  //   req.flash('error', 'Passwords do not match');
+  //   return res.redirect('/signup');
+  // }
 
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      req.flash('error', 'Email already exists');
+      req.status(404).send('error', 'Email already exists');
       return res.redirect('/signup');
     }
 

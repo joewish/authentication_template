@@ -12,7 +12,7 @@ app.use(urlencoded({ extended: true }));
 console.log(path.join("public"))
 app.use("/",express.static(path.join('public')));
 app.set("view engine", "ejs");
-app.set("views", path.resolve("src","feature","tracker", "views"));
+app.set("views", path.resolve("src","views"));
 // configure routes
 app.use("/",router);
 

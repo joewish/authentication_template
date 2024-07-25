@@ -4,7 +4,7 @@ import passport from 'passport';
 import {getSignup,postSignup,getSignin,signout,getHome,getResetPassword,postResetPassword,getForgotPassword,postForgotPassword} from '../controller/app.controller.js';
 export const router = express.Router();
 
-router.get('/signup', getSignup);
+router.get('/', getSignup);
 router.post('/signup', postSignup);
 router.get('/signin', getSignin);
 router.post('/signin', passport.authenticate('local', {
