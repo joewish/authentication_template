@@ -3,8 +3,6 @@ import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import {transporter} from '../config/nodemailer.js';
-import recaptcha  from 'recaptcha2';
-import {recaptcha2} from '../config/recaptcha.js';
 import mongoose from 'mongoose';
 const User = mongoose.model("user", userSchema)
 
@@ -16,14 +14,18 @@ export const postSignup = async (req, res) => {
   const { name,email, password} = req.body;
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      res.status(200).render('signup',{error:existingUser.email})
+    if (existingUser.name==name) {
+      if (existingUser.password==password) {
+        res.status(200).render('home',{error:existingUser.email})
+      }else{
+        res.status(200).render('signin',{error:true})
+      }
       //return res.render('home',{user:existingUser.name});
+    }else{
+      const newUser = new User({ name,email, password });
+      await newUser.save();
+      return res.render('home',{user:existingUser.name});
     }
-
-    const newUser = new User({ name,email, password });
-    await newUser.save();
-    return res.render('home',{user:existingUser.name});
   } catch (err) {
     console.error(err.message);
     return res.render('error');
@@ -31,12 +33,12 @@ export const postSignup = async (req, res) => {
 };
 
 export const getSignin = (req, res) => {
-  res.render('signin');
+  res.render('signin',{error:false});
 };
 
 export const signout = (req, res) => {
   req.logout();
-  res.render('signin');
+  res.render('signin',{error:false});
 };
 
 export const getHome = (req, res) => {
@@ -61,7 +63,7 @@ export const postResetPassword = async (req, res) => {
 
     user.password = newPassword;
     await user.save();
-    res.render('/signin');
+    res.render('signin',{error:false});
   } catch (err) {
     res.render('/reset');
   }
