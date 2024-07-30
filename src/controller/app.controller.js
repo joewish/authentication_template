@@ -2,7 +2,7 @@ import { userSchema } from "../model/app.schema.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { transporter } from "../config/nodemailer.js";
+import { sendPasswordResetEmail } from "../config/nodemailer.js";
 import mongoose from "mongoose";
 const User = mongoose.model("user", userSchema);
 
