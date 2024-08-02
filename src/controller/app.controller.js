@@ -53,7 +53,6 @@ export const getResetPassword = (req, res) => {
 };
 
 export const postResetPassword = async (req, res) => {
-  console.log(req.body);
   const { email, newPassword, newPassword2 } = req.body;
   if (newPassword !== newPassword2) {
     return res.render("resetPassword");
@@ -75,16 +74,16 @@ export const postResetPassword = async (req, res) => {
 };
 
 export const getForgotPassword = (req, res) => {
-  res.render("forgotPassword");
+  res.render("forgotPassword",{error:false});
 };
 
 export const postForgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-    // if (!user) {
-    //   return res.render("forgot");
-    // }
+    if (!user) {
+      return res.render("forgotPassword",{error:true});
+    }
 
     const token = crypto.randomBytes(20).toString("hex");
     user.resetPasswordToken = token;
@@ -110,8 +109,8 @@ export const postForgotPassword = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    // req.flash('info', `An email has been sent to ${user.email} with further instructions.`);
-    res.render("/forgot");
+    req.flash('info', `An email has been sent to ${user.email} with further instructions.`);
+    res.render("signin",{error:false});
   } catch (err) {
     // req.flash('error', 'Error sending the email');
     console.log(err);
