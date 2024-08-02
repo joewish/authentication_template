@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { sendPasswordResetEmail } from "../config/nodemailer.js";
 import mongoose from "mongoose";
 const User = mongoose.model("user", userSchema);
-const url="http://localhost:3000"
+const url = "http://localhost:3000";
 export const getSignup = (req, res, next) => {
   res.status(201).render("landing");
 };
@@ -15,9 +15,12 @@ export const postSignup = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const isPasswordMatch = await bcrypt.compare(password, existingUser.password);
+      const isPasswordMatch = await bcrypt.compare(
+        password,
+        existingUser.password,
+      );
       if (existingUser.name === name && isPasswordMatch) {
-        return res.status(200).render("home", { user: existingUser});
+        return res.status(200).render("home", { user: existingUser });
       } else {
         return res.status(200).render("signin", { error: true });
       }
@@ -28,7 +31,8 @@ export const postSignup = async (req, res) => {
       return res.render("home", { user: newUser.name });
     }
   } catch (err) {
-        return res.render("error");
+    console.log(err);
+    return res.render("error");
   }
 };
 export const getSignin = (req, res) => {
@@ -65,6 +69,7 @@ export const postResetPassword = async (req, res) => {
     await user.save();
     res.render("signin", { error: false });
   } catch (err) {
+    console.log(err);
     res.render("resetPassword");
   }
 };
@@ -92,7 +97,6 @@ export const postForgotPassword = async (req, res) => {
         pass: process.env.EMAIL_PASS,
       },
     });
-  
 
     const mailOptions = {
       to: user.email,
@@ -110,6 +114,7 @@ export const postForgotPassword = async (req, res) => {
     res.render("/forgot");
   } catch (err) {
     // req.flash('error', 'Error sending the email');
+    console.log(err);
     res.render("/forgot");
   }
 };
