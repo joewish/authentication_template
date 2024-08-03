@@ -13,8 +13,8 @@ router.post('/signin', passport2.authenticate('local', {
 }));
 router.get('/signout', signout);
 router.get('/home', getHome);
-router.get('/reset', getResetPassword);
-router.post('/reset', postResetPassword);
+router.get('/reset/:token', getResetPassword);
+router.post('/reset/:token', postResetPassword);
 router.get('/forgot', getForgotPassword);
 router.post('/forgot', postForgotPassword);
 

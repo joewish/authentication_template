@@ -24,6 +24,11 @@ app.use(passport.session());
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.messages = req.flash();
+  next();
+});
 app.use("/", express.static(path.join("public")));
 app.set("view engine", "ejs");
 app.set("views", path.resolve("src", "views"));
