@@ -3,28 +3,23 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import axios from "axios";
 const User = mongoose.model("user", userSchema);
 const url = "http://localhost:3000";
 export const getSignup = (req, res, next) => {
   res.status(201).render("landing");
 };
-{/* <script>
-  function onClick(e) {
-    e.preventDefault();
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute('6LdvaB4qAAAAALoJ257vKViFGaf-6cexD0naCt0L', {action: 'LOGIN'});
-    });
-  }
-</script> */}
-export const reCapthaChecking=(req,res,next)=>{
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute(process.env.RECAPTCHA_SECRET_KEY, {action: 'LOGIN'});
-    });
-}
-
 export const postSignup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password,'g-recaptcha-response': recaptchaResponse } = req.body;
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY; // Set this in your environment variables
+  const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptchaResponse}`;
   try {
+    // const response = await axios.post(verificationUrl);
+    // const { success } = response.data;
+    // if (!success) {
+    //   req.flash('message', { messages: 'Captcha verification failed. Please try again.' });
+    //   return res.redirect('/signin');
+    // }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const isPasswordMatch = await bcrypt.compare(
@@ -40,17 +35,10 @@ export const postSignup = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
       const newUser = new User({ name, email, password: hashedPassword });
       await newUser.save();
-      if (reCapthaChecking()){
-        console.log(reCapthaChecking())
-        return res.render("home", { user: newUser.name });
-      }else{
-        return res.render("error")
-      }
-      
     }
   } catch (err) {
     console.log(err);
-    return res.render("error",{message:err.message});
+    return res.render("message",{message:err.message});
   }
 };
 export const getSignin = (req, res) => {
@@ -155,10 +143,10 @@ export const postForgotPassword = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     req.flash('message', {messages:`An email has been sent to ${user.email} with further instructions.`});
-    return res.redirect("/signin");
+    return res.redirect("/forgot");
   } catch (err) {
     console.error(err);
     req.flash('message', {messages:'Error sending the email'});
-    res.redirect("/forgot");
+    return res.render("forgot");
   }
 };

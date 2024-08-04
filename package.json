@@ -12,6 +12,7 @@
   "dependencies": {
     "@google-cloud/recaptcha-enterprise": "^5.10.0",
     "@types/passport-google-oauth20": "^2.0.16",
+    "axios": "^1.7.3",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
