@@ -5,7 +5,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import axios from "axios";
 const User = mongoose.model("user", userSchema);
-const url = "http://localhost:3000";
+const url = "https://authentication-template.onrender.com";
 export const getSignup = (req, res, next) => {
   res.status(201).render("landing");
 };
