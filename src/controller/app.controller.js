@@ -4,41 +4,48 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import axios from "axios";
+import { error } from "console";
 const User = mongoose.model("user", userSchema);
 const url = "https://authentication-template.onrender.com";
 export const getSignup = (req, res, next) => {
   res.status(201).render("landing");
 };
 export const postSignup = async (req, res) => {
-  const { name, email, password,'g-recaptcha-response': recaptchaResponse } = req.body;
+  const { name, email, password, 'g-recaptcha-response': recaptchaResponse } = req.body;
   const secretKey = process.env.RECAPTCHA_SECRET_KEY; // Set this in your environment variables
   const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptchaResponse}`;
+
   try {
+    // ReCaptcha verification
     // const response = await axios.post(verificationUrl);
     // const { success } = response.data;
     // if (!success) {
-    //   req.flash('message', { messages: 'Captcha verification failed. Please try again.' });
-    //   return res.redirect('/signin');
+    //   req.flash('message', 'Captcha verification failed. Please try again.');
+    //   return res.redirect('/signup');
     // }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const isPasswordMatch = await bcrypt.compare(
-        password,
-        existingUser.password,
-      );
+      const isPasswordMatch = await bcrypt.compare(password, existingUser.password);
+      console.log(isPasswordMatch)
       if (existingUser.name === name && isPasswordMatch) {
-        return res.status(200).render("home", { user: existingUser });
+        req.flash('message', {messages:'You are already registered. Please sign in.'});
+        return res.render('home',{ user: existingUser });
       } else {
-        return res.status(200).render("signin", { error: true });
+        req.flash('message', {messages:'you have entered the wrong password'});
+        return res.render('signin',{error:false});
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
       const newUser = new User({ name, email, password: hashedPassword });
       await newUser.save();
+      req.flash('message', {messages:'Signup successful! Please sign in.'});
+      return res.render('signin',{error:false});
     }
   } catch (err) {
-    console.log(err);
-    return res.render("message",{message:err.message});
+    console.error(err);
+    req.flash('message', {messages:`name ${name} or email ${email} are alreday register to us. Please try to reset your password`});
+    return res.render('signin',{error:false});
   }
 };
 export const getSignin = (req, res) => {
@@ -91,10 +98,10 @@ export const postResetPassword = async (req, res) => {
       await user.save();
 
       req.flash('message', { messages: 'Password has been successfully reset.' });
-      res.redirect('/signin');
+      res.render('signin',{error:false});
     } else {
       req.flash('message', { messages: 'Passwords do not match.' });
-      res.redirect('back');
+      res.redirect('/resetPassword');
     }
   } catch (err) {
     console.error(err);
@@ -129,7 +136,7 @@ export const postForgotPassword = async (req, res) => {
       },
     });
 
-    const resetUrl = `${req.protocol}://${req.get('host')}/reset/${token}`;
+    const resetUrl = `${url}/reset/${token}`;
     const mailOptions = {
       to: user.email,
       from: process.env.EMAIL_USER,
@@ -143,7 +150,7 @@ export const postForgotPassword = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     req.flash('message', {messages:`An email has been sent to ${user.email} with further instructions.`});
-    return res.redirect("/forgot");
+    return res.render("forgot");
   } catch (err) {
     console.error(err);
     req.flash('message', {messages:'Error sending the email'});

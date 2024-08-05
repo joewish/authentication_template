@@ -18,7 +18,7 @@
     <% if (messages.message && messages.message.length > 0) { %>
       <% messages.message.forEach(function(message) { %>
         <div class="alert alert-info alert-dismissible fade show text-center" role="alert">
-          <p><%= message.messages %></p>
+          <p style="color: red;"><%= message.messages %></p>
           <% if (message.messages.includes("An email has been sent")) { %>
             <a class="text-center" href="/signup" class="btn btn-primary mt-2">Sign Up</a>
           <% } %>
