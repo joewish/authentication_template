@@ -27,7 +27,6 @@ export const postSignup = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const isPasswordMatch = await bcrypt.compare(password, existingUser.password);
-      console.log(isPasswordMatch)
       if (existingUser.name === name && isPasswordMatch) {
         req.flash('message', {messages:'You are already registered. Please sign in.'});
         return res.render('home',{ user: existingUser });
